@@ -12,20 +12,6 @@ def get_inputs():
     return inputs
 
 
-def get_distance(x, y):
-    """Returns the Manhattan distance of a point relative to the point of origin.
-
-    Args:
-        x: The x coordinate of the point for which the distance should be calculated.
-        y: The y coordinate of the point for which the distance should be calculated.
-
-    Returns:
-        An integer indicating the distance of the provided point from the point of origin.
-    """
-
-    return abs(x) + abs(y)
-
-
 def construct_circuit(wire_instructions):
     """Creates and returns a FuelManagement instance with the provided wire instructions.
 
@@ -44,69 +30,23 @@ def construct_circuit(wire_instructions):
     return fm
 
 
-def get_distance_closest(intersections):
-    """Returns the shortest direct Manhattan distance to an intersection.
+def part1():
+    """Processes part 1 of the puzzle for day 3."""
 
-    Identifies the intersection closest to the point of origin and returns
-    the distance of that intersection from the origin.
-
-    Args:
-        intersections: A list of coordinates indicating the location of intersections.
-
-    Returns:
-        An integer indicating the shortest Manhattan distance to an intersection.
-    """
-
-    closest_intersection = {}
-
-    for intersection in intersections:
-        distance = get_distance(*intersection)
-        best_distance = closest_intersection.get('distance')
-        if best_distance is None or distance < best_distance:
-            closest_intersection['coordinates'] = intersection
-            closest_intersection['distance'] = distance
-
-    return closest_intersection['distance']
+    fm = construct_circuit(get_inputs())
+    print(fm.get_distance_to_closest_intersection())
 
 
-def get_shortest_combined_distance(fm, intersections):
-    """Returns the shortest combined number of steps to any intersection.
+def part2():
+    """Processes part 2 of the puzzle for day 3."""
 
-    Checks distance along each wire (following the path of the wire) to reach each intersection,
-    and determines the shortest combined distance to reach an intersection.
-
-    Args:
-        fm: A FuelManagement instance which contains the wires along which the intersections reside.
-        intersections: A list of coordinates indicating the location of intersections.
-
-    Returns:
-        An integer indicating the shortest combined distance along the wires to an intersection.
-    """
-
-    min_distance = None
-
-    for intersection in intersections:
-        combined_distance = 0
-        for wire in fm.wires:
-            combined_distance += wire.distance_to_point(intersection)
-
-        if min_distance is None or combined_distance < min_distance:
-            min_distance = combined_distance
-
-    return min_distance
+    fm = construct_circuit(get_inputs())
+    print(fm.get_lowest_latency_intersection())
 
 
 def main():
-    wire_inputs = get_inputs()
-    fm = construct_circuit(wire_inputs)
-
-    intersections = fm.find_intersections()
-
-    # Part 1
-    print(get_distance_closest(intersections))
-
-    # Part 2
-    print(get_shortest_combined_distance(fm, intersections))
+    part1()
+    part2()
 
 
 if __name__ == '__main__':

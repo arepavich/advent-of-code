@@ -26,6 +26,7 @@ class FuelManagement(spacecraft.Module):
     def __init__(self):
         super(FuelManagement, self).__init__()
         self.wires = []
+        self._intersections = None
 
     def add_wire(self, wire):
         """Adds a wire to the FuelManagement ship module.
@@ -52,9 +53,7 @@ class FuelManagement(spacecraft.Module):
                 f"indicating instructions for creating a `Wire` instance"
             )
 
-    def find_intersections(self):
-        """Returns a set of coordinates at which intersections of the FuelManagement module's wires occur."""
-
+    def _find_intersections(self):
         intersections = []
 
         already_processed = []
@@ -78,6 +77,71 @@ class FuelManagement(spacecraft.Module):
 
         # Convert list of intersections to a set to eliminate duplicates
         return set(intersections)
+
+    @property
+    def intersections(self):
+        """Returns a set of coordinates at which intersections of the FuelManagement module's wires occur."""
+
+        if self._intersections is None:
+            self._intersections = self._find_intersections()
+
+        return self._intersections
+
+    def get_distance_to_closest_intersection(self):
+        """Returns the shortest direct Manhattan distance to an intersection.
+
+        Identifies the intersection closest to the point of origin and returns
+        the distance of that intersection from the origin.
+
+        Returns:
+            An integer indicating the shortest Manhattan distance to an intersection.
+        """
+
+        def get_distance(x, y):
+            """Returns the Manhattan distance of a point relative to the point of origin.
+
+            Args:
+                x: The x coordinate of the point for which the distance should be calculated.
+                y: The y coordinate of the point for which the distance should be calculated.
+
+            Returns:
+                An integer indicating the distance of the provided point from the point of origin.
+            """
+
+            return abs(x) + abs(y)
+
+        closest_intersection = {}
+
+        for intersection in self.intersections:
+            distance = get_distance(*intersection)
+            best_distance = closest_intersection.get('distance')
+            if best_distance is None or distance < best_distance:
+                closest_intersection['coordinates'] = intersection
+                closest_intersection['distance'] = distance
+
+        return closest_intersection['distance']
+
+    def get_lowest_latency_intersection(self):
+        """Returns the shortest combined number of steps to any intersection.
+
+        Checks distance along each wire (following the path of the wire) to reach each intersection,
+        and determines the shortest combined distance to reach an intersection.
+
+        Returns:
+            An integer indicating the shortest combined distance along the wires to an intersection.
+        """
+
+        min_distance = None
+
+        for intersection in self.intersections:
+            combined_distance = 0
+            for wire in self.wires:
+                combined_distance += wire.distance_to_point(intersection)
+
+            if min_distance is None or combined_distance < min_distance:
+                min_distance = combined_distance
+
+        return min_distance
 
 
 class Wire:

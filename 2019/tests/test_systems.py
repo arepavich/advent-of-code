@@ -67,11 +67,13 @@ class TestWire:
         "test_wire, test_point, expected", (
                 ("U1, R2, U1, L2", (1, 1), 2),
                 ("U1, R2, U1, L2", (1, 2), 5),
+                ("U1, R2, U1, L2, U3", (0, 5), 9)
         )
     )
-    def test_can_call_distance_to_point(self, test_wire, test_point, expected):
+    def test_can_get_distance_to_point(self, test_wire, test_point, expected):
         wire = systems.Wire(test_wire)
         ret_val = wire.distance_to_point(test_point)
+
         assert ret_val == expected
 
 
@@ -203,14 +205,11 @@ class TestFuelManagement:
         with pytest.raises(TypeError):
             fm.add_wire({})
 
-    def test_can_call_find_intersections(self, fm):
-        fm.find_intersections()
-
     def test_can_find_an_intersection(self, fm):
         fm.add_wire("U1,R2")
         fm.add_wire("R1,U2")
 
-        assert fm.find_intersections() == {(1, 1)}
+        assert fm.intersections == {(1, 1)}
 
     @pytest.mark.parametrize(
         "test_wire1, test_wire2, expected", (
@@ -222,5 +221,29 @@ class TestFuelManagement:
         fm.add_wire(test_wire1)
         fm.add_wire(test_wire2)
 
-        assert fm.find_intersections() == expected
+        assert fm.intersections == expected
+
+    @pytest.mark.parametrize(
+        "test_wire1, test_wire2, expected", (
+                ("U121, R180, D80", "R38, U280, R150, D235, L100", 159),
+                ("U85, R120, L40, D35", "R110, U90, R25, D35, L60", 135)
+        )
+    )
+    def test_can_get_distance_to_closest_intersection(self, fm, test_wire1, test_wire2, expected):
+        fm.add_wire(test_wire1)
+        fm.add_wire(test_wire2)
+
+        assert fm.get_distance_to_closest_intersection() == expected
+
+    @pytest.mark.parametrize(
+        "test_wire1, test_wire2, expected", (
+                ("R75,D30,R83,U83,L12,D49,R71,U7,L72", "U62,R66,U55,R34,D71,R55,D58,R83", 610),
+                ("R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51", "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7", 410)
+        )
+    )
+    def test_can_get_lowest_latency_intersection(self, fm, test_wire1, test_wire2, expected):
+        fm.add_wire(test_wire1)
+        fm.add_wire(test_wire2)
+
+        assert fm.get_lowest_latency_intersection() == expected
 
