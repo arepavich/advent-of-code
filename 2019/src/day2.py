@@ -4,6 +4,8 @@ import spacecraft
 
 
 def get_inputs():
+    """Returns a list of integers representing the instructions to be processed."""
+
     with open(os.path.join("inputs", "intcode_inputs.txt"), "rt") as in_file:
         inputs = in_file.read().strip().split(',')
 
@@ -11,6 +13,7 @@ def get_inputs():
 
 
 def part2():
+    """Processes part 2 of the puzzle for day 2."""
     orig_inputs = get_inputs()
     target_value = 19690720
     for noun in range(0, 100):
@@ -26,6 +29,8 @@ def part2():
 
 
 def part1():
+    """Processes part 1 of the puzzle for day 2."""
+
     inputs = get_inputs()
     computer = spacecraft.Computer()
     inputs[1] = 12

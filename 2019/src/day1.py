@@ -4,6 +4,8 @@ import spacecraft
 
 
 def part2():
+    """Processes part 2 of the puzzle for day 1."""
+
     with open(
             os.path.join("inputs", "ship_modules.txt"),
             "rt"
@@ -19,6 +21,8 @@ def part2():
 
 
 def part1():
+    """Processes part 1 of the puzzle for day 1."""
+
     total_fuel = 0
     with open(
             os.path.join("inputs", "ship_modules.txt"),
