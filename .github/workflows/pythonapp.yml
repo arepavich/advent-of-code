@@ -28,8 +28,7 @@ jobs:
       run: echo ::set-env name=workspace::$GITHUB_WORKSPACE
     - name: Test with pytest
       run: |
-        echo $PYTHONPATH
         pip install pytest
         python -m pytest
       env:
-        PYTHONPATH: ${{env.workspace}}/2019/src
+        PYTHONPATH: ${{env.workspace}}/src
