@@ -32,4 +32,4 @@ jobs:
         pip install pytest
         python -m pytest
       env:
-        PYTHONPATH: ${{env.workspace}}
+        PYTHONPATH: ${{env.workspace}}/2019/src
