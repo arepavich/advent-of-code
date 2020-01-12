@@ -16,6 +16,8 @@ class Spacecraft(object):
         """
         if isinstance(module, Module):
             self._modules.append(module)
+
+            # Force recalculation of mass next time it is accessed
             self._mass = None
 
     @property
@@ -103,16 +105,45 @@ class Computer(Module):
 
     ADD = 1
     MULT = 2
+    STORE = 3
+    OUTPUT = 4
+    JUMP_IF_TRUE = 5
+    JUMP_IF_FALSE = 6
+    LESS_THAN = 7
+    EQUALS = 8
     HALT = 99
     VALID_INSTRUCTIONS = {
         ADD: {
-            'parameters': 3
+            'parameters': 3,
+            'output_param': 3
         },
         MULT: {
-            'parameters': 3
+            'parameters': 3,
+            'output_param': 3
         },
         HALT: {
             'parameters': 0
+        },
+        STORE: {
+            'parameters': 1,
+            'output_param': 1
+        },
+        OUTPUT: {
+            'parameters': 1
+        },
+        JUMP_IF_TRUE: {
+            'parameters': 2
+        },
+        JUMP_IF_FALSE: {
+            'parameters': 2
+        },
+        LESS_THAN: {
+            'parameters': 3,
+            'output_param': 3
+        },
+        EQUALS: {
+            'parameters': 3,
+            'output_param': 3
         }
     }
 
@@ -129,27 +160,72 @@ class Computer(Module):
             ValueError: An invalid instruction was detected.
         """
 
+        def parse_instruction(my_inst):
+            """Returns a tuple indicating the op code and list of parameter modes for a given instruction."""
+
+            instruction_ = str(my_inst)
+            if len(instruction_) > 1:
+                op_code = int(''.join(instruction_[-2:]))
+                modes_ = [int(mode_) for mode_ in reversed(instruction_[:-2])]
+            else:
+                op_code = my_inst
+                modes_ = []
+            return op_code, modes_
+
         index = 0
         while index < len(input_list):
-            instruction = input_list[index]
+            instruction, modes = parse_instruction(input_list[index])
 
             if instruction not in self.VALID_INSTRUCTIONS.keys():
                 raise ValueError(f"Invalid instruction at {index}")
 
             inst_meta = self.VALID_INSTRUCTIONS.get(instruction)
 
+            parameter_count = inst_meta.get('parameters', 0)
+            output_param = inst_meta.get('output_param')
+            parameters = []
+            param_start_index = index + 1
+            for i, param in enumerate(input_list[param_start_index:param_start_index+parameter_count]):
+                # Default to mode 0 (position mode)
+                mode = modes[i] if i < len(modes) else 0
+
+                parameters.append(
+                    param if mode == 1 or (output_param is not None and i == (output_param - 1)) else input_list[param]
+                )
+
             if instruction == self.HALT:
                 break
-            else:
-                first = input_list[input_list[index + 1]]
-                second = input_list[input_list[index + 2]]
-                output = input_list[index + 3]
+            elif instruction in (self.ADD, self.MULT, self.LESS_THAN, self.EQUALS):
+                # Add, multiply, less than, and equals functions use the same parameter format
+                first, second, output = parameters
 
                 if instruction == self.ADD:
                     input_list[output] = first + second
                 elif instruction == self.MULT:
                     input_list[output] = first * second
+                elif instruction == self.LESS_THAN:
+                    input_list[output] = 1 if first < second else 0
+                elif instruction == self.EQUALS:
+                    input_list[output] = 1 if first == second else 0
+            elif instruction == self.STORE:
+                target = parameters[0]
+                value = int(input("Enter a value to store: "))
 
-            index += inst_meta.get('parameters', 0) + 1
+                input_list[target] = value
+            elif instruction == self.OUTPUT:
+                value = parameters[0]
+                print(value)
+            elif instruction == self.JUMP_IF_TRUE:
+                value, target = parameters
+                if value != 0:
+                    index = target
+                    continue
+            elif instruction == self.JUMP_IF_FALSE:
+                value, target = parameters
+                if value == 0:
+                    index = target
+                    continue
+
+            index += parameter_count + 1
 
         return input_list
